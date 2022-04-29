@@ -21,8 +21,8 @@ module.exports = class FederatedTypesPlugin {
 
 
     const run = () => {
-      const exposedComponents = inheritedPluginOptions.exposes || this.options.exposes
-      const remoteComponents = inheritedPluginOptions.remotes || this.options.remotes
+      const exposedComponents = inheritedPluginOptions.exposes || this.options?.exposes
+      const remoteComponents = inheritedPluginOptions.remotes || this.options?.remotes
 
       if (exposedComponents) {
         const fileNames = Object.values(inheritedPluginOptions.exposes || this.options.exposes);
@@ -55,11 +55,11 @@ module.exports = class FederatedTypesPlugin {
 
         remoteUrls.forEach(remote => {
           axios.get(`${remote}/@mf-typescript/__types_index.json`)
-          .then(indexFileResp => {
-            // Download all the d.ts files mentioned in the index file
-            indexFileResp.data?.forEach(file => download(`${remote}/@mf-typescript/${file}`, '@mf-typescript'))
-          })
-          .catch(e => console.log(e))
+            .then(indexFileResp => {
+              // Download all the d.ts files mentioned in the index file
+              indexFileResp.data?.forEach(file => download(`${remote}/@mf-typescript/${file}`, '@mf-typescript'))
+            })
+            .catch(e => console.log('ERROR fetching/writing types'))
         })
       }
 
