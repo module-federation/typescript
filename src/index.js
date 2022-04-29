@@ -1,24 +1,37 @@
 const ts = require("typescript");
 const download = require('download');
 const fs = require('fs')
+const path = require('path')
+const get = require('lodash.get')
 const axios = require('axios')
 module.exports = class FederatedTypesPlugin {
   constructor(options) {
     this.options = options;
   }
+
   apply(compiler) {
+    let recompileInterval
+    const options = compiler.options
+    const distPath = get(options, 'devServer.static.directory') || get(options, 'output.path')
+
+    const federationOptions = options.plugins.find((plugin) => {
+      return plugin.constructor.name === 'ModuleFederationPlugin'
+    });
+    const inheritedPluginOptions = get(federationOptions, '_options') || null
+
+
     const run = () => {
-      const exposedComponents = this.options.exposes
-      const remoteComponents = this.options.remotes
+      const exposedComponents = inheritedPluginOptions.exposes || this.options.exposes
+      const remoteComponents = inheritedPluginOptions.remotes || this.options.remotes
 
       if (exposedComponents) {
-        const fileNames = Object.values(this.options.exposes);
+        const fileNames = Object.values(inheritedPluginOptions.exposes || this.options.exposes);
         const typeFiles = fileNames.map(f => {
           const split = f.split('/')
           return split[split.length - 1] + '.d.ts'
         })
 
-        fs.writeFile('./dist/@mf-typescript/__types_index.json', JSON.stringify(typeFiles), (e) => {
+        fs.writeFile(path.join(distPath, '/@mf-typescript/__types_index.json'), JSON.stringify(typeFiles), (e) => {
           if (e) {
             console.log('Error saving the types index')
           }
@@ -26,7 +39,7 @@ module.exports = class FederatedTypesPlugin {
         const program = ts.createProgram(fileNames, {
           declaration: true,
           emitDeclarationOnly: true,
-          outDir: "./dist/@mf-typescript/", // replace this with build directory
+          outDir: path.join(distPath, "./@mf-typescript/"), // replace this with build directory
         });
 
         program.emit();
@@ -42,18 +55,24 @@ module.exports = class FederatedTypesPlugin {
 
         remoteUrls.forEach(remote => {
           axios.get(`${remote}/@mf-typescript/__types_index.json`)
-            .then(indexFileResp => {
-              // Download all the d.ts files mentioned in the index file
-              indexFileResp.data?.forEach(file => download(`${remote}/@mf-typescript/${file}`, '@mf-typescript'))
-            })
-            .catch(e => console.log(e))
-
+          .then(indexFileResp => {
+            // Download all the d.ts files mentioned in the index file
+            indexFileResp.data?.forEach(file => download(`${remote}/@mf-typescript/${file}`, '@mf-typescript'))
+          })
+          .catch(e => console.log(e))
         })
       }
 
     };
 
     compiler.hooks.afterCompile.tap("FederatedTypes", (compilation) => {
+      // Reset and create an Interval to refetch types every 60 seconds
+      clearInterval(recompileInterval);
+      recompileInterval = setInterval(() => {
+        run(compilation);
+      }, 1000 * 60)
+
+      // Runs a compilation immediately
       run(compilation);
     });
   }

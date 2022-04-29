@@ -17,6 +17,7 @@ const federationConfig = {
   name: 'my-app',
   filename: 'remoteEntry.js',
   exposes: {
+    //...exposed components
     './Button': './src/Button',
     './Input': './src/Input',
   },
@@ -26,7 +27,7 @@ const federationConfig = {
 plugins: [
   // ...
   new ModuleFederationPlugin(federationConfig),
-  new FederatedTypesPlugin(federationConfig),
+  new FederatedTypesPlugin(), // Optional: you can pass federationConfig object here as well
 ]
 ```
 
@@ -41,6 +42,5 @@ const RemoteButton = React.lazy(
 ) as unknown as typeof RemoteButtonType;
 ```
 
-
 ### What's next?
-[ ] Refetch types on save
+[ ] Support nextjs
