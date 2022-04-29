@@ -1,7 +1,7 @@
 {
   "name": "@module-federation/typescript",
-  "version": "0.1.1",
-  "description": "[WIP] webpack plugin to enable types for federated apps/components",
+  "version": "0.1.2",
+  "description": "Webpack plugin to stream typescript for module-federated apps/components",
   "main": "src/index.js",
   "scripts": {},
   "keywords": [],
@@ -9,5 +9,6 @@
   "license": "MIT",
   "dependencies": {
     "typescript": "4.6.3"
-  }
+  },
+  "publishConfig": { "registry": "https://r.privjs.com" }
 }

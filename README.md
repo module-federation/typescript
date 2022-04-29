@@ -1,8 +1,9 @@
 ## Typescript support for module federated apps
 
-A webpack plugin for sharing typescript types between module federated apps.
+A webpack plugin for sharing typescript types between module federated apps. This plugin is distributed for free via [privjs.com](https://app.privjs.com/buy/packageDetail?pkg=@module-federation/typescript)
 
 ### Installation
+Procure a free license to this plugin from [privjs.com](https://app.privjs.com/buy/packageDetail?pkg=@module-federation/typescript). Check your email for the private token and then run the following commands:
 ```
 $ npm config set @module-federation:registry https://r.privjs.com
 $ npm i @module-federation/typescript
@@ -11,7 +12,7 @@ $ npm i @module-federation/typescript
 ### Usage
 Register the plugin in webpack.config.js file
 ```
-const FederatedTypesPlugin = require('./webpack/tsplugin')
+const FederatedTypesPlugin = require('@module-federation/typescript')
 
 const federationConfig = {
   name: 'my-app',
@@ -43,4 +44,10 @@ const RemoteButton = React.lazy(
 ```
 
 ### What's next?
-[ ] Support nextjs
+[ ] Support for nextjs
+
+### Support
+Drop me a message on twitter for support/feedback, or maybe just say Hi at [@prasannamestha](https://twitter.com/prasannamestha)
+
+### Credits
+Shoutout to [@ScriptedAlchemy](https://twitter.com/ScriptedAlchemy) for helping with the development of this plugin.
