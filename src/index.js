@@ -67,9 +67,11 @@ module.exports = class FederatedTypesPlugin {
     compiler.hooks.afterCompile.tap("FederatedTypes", (compilation) => {
       // Reset and create an Interval to refetch types every 60 seconds
       clearInterval(recompileInterval);
-      recompileInterval = setInterval(() => {
-        run(compilation);
-      }, 1000 * 60)
+      if (compiler.options.mode === 'development') {
+        recompileInterval = setInterval(() => {
+          run(compilation);
+        }, 1000 * 60)
+      }
 
       // Runs a compilation immediately
       run(compilation);
