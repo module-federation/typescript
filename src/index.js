@@ -12,7 +12,7 @@ module.exports = class FederatedTypesPlugin {
   apply(compiler) {
     let recompileInterval
     const options = compiler.options
-    const distPath = get(options, 'devServer.static.directory') || get(options, 'output.path')
+    const distPath = get(options, 'devServer.static.directory') || get(options, 'output.path') || 'dist'
 
     const federationOptions = options.plugins.find((plugin) => {
       return plugin.constructor.name === 'ModuleFederationPlugin'
@@ -33,7 +33,7 @@ module.exports = class FederatedTypesPlugin {
 
         fs.writeFile(path.join(distPath, '/@mf-typescript/__types_index.json'), JSON.stringify(typeFiles), (e) => {
           if (e) {
-            console.log('Error saving the types index')
+            console.log('Error saving the types index', e)
           }
         })
         const program = ts.createProgram(fileNames, {
@@ -62,7 +62,6 @@ module.exports = class FederatedTypesPlugin {
             .catch(e => console.log('ERROR fetching/writing types'))
         })
       }
-
     };
 
     compiler.hooks.afterCompile.tap("FederatedTypes", (compilation) => {
