@@ -21,14 +21,14 @@ module.exports = class FederatedTypesPlugin {
 
 
     const run = () => {
-      const exposedComponents = inheritedPluginOptions.exposes || this.options?.exposes
-      const remoteComponents = inheritedPluginOptions.remotes || this.options?.remotes
+      const exposedComponents = this.options?.exposes || inheritedPluginOptions.exposes
+      const remoteComponents = this.options?.remotes || inheritedPluginOptions.remotes
 
       if (exposedComponents) {
         const fileNames = Object.values(inheritedPluginOptions.exposes || this.options.exposes);
         const typeFiles = fileNames.map(f => {
           const split = f.split('/')
-          return split[split.length - 1] + '.d.ts'
+          return split[split.length - 1].split('.')[0] + '.d.ts'
         })
 
         fs.writeFile(path.join(distPath, '/@mf-typescript/__types_index.json'), JSON.stringify(typeFiles), (e) => {
@@ -59,7 +59,7 @@ module.exports = class FederatedTypesPlugin {
               // Download all the d.ts files mentioned in the index file
               indexFileResp.data?.forEach(file => download(`${remote}/@mf-typescript/${file}`, '@mf-typescript'))
             })
-            .catch(e => console.log('ERROR fetching/writing types'))
+            .catch(e => console.log('ERROR fetching/writing types', e))
         })
       }
     };
