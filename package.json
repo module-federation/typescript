@@ -1,11 +1,16 @@
 {
   "name": "@module-federation/typescript",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Webpack plugin to stream typescript for module federation apps/components",
   "main": "src/index.js",
   "scripts": {},
-  "keywords": ["module-federation","typescript","remote types","federated types"],
-  "author":  "Prasanna Mestha <prasanna@privjs.com> (https://github.com/prasannamestha)",
+  "keywords": [
+    "module-federation",
+    "typescript",
+    "remote types",
+    "federated types"
+  ],
+  "author": "Prasanna Mestha <prasanna@privjs.com> (https://github.com/prasannamestha)",
   "contributors": [
     "Zack Jackson <zackary.l.jackson@gmail.com> (https://github.com/ScriptedAlchemy)"
   ],
