@@ -25,7 +25,7 @@ module.exports = class FederatedTypesPlugin {
       const remoteComponents = this.options?.remotes || inheritedPluginOptions.remotes
 
       if (exposedComponents) {
-        const fileNames = Object.values(inheritedPluginOptions.exposes || this.options.exposes);
+        const fileNames = Object.values(exposedComponents);
         const typeFiles = fileNames.map(f => {
           const split = f.split('/')
           return split[split.length - 1].split('.')[0] + '.d.ts'
