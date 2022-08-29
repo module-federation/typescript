@@ -1,11 +1,7 @@
 ## Typescript support for module federated apps
 
-A webpack plugin for sharing typescript types between module federated apps. This plugin is distributed for free via [privjs.com](https://app.privjs.com/buy/packageDetail?pkg=@module-federation/typescript)
-
 ### Installation
-Procure a free license to this plugin from [privjs.com](https://app.privjs.com/buy/packageDetail?pkg=@module-federation/typescript). Check your email for the private token and then run the following commands:
 ```
-$ npm config set @module-federation:registry https://r.privjs.com
 $ npm i @module-federation/typescript
 ```
 
