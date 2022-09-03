@@ -12,109 +12,144 @@ module.exports = class FederatedTypesPlugin {
 
   apply(compiler) {
     let recompileInterval;
-    const options = compiler.options;
+
+    this.tsDefinitionFilesMap = {};
+    this.compilerOptions = compiler.options;
+    this.typescriptFolderName = "@mf-typescript";
+    this.typesIndexJsonFileName = "__types_index.json";
+
     const distPath =
       get(options, "devServer.static.directory") ||
       get(options, "output.path") ||
       "dist";
 
-    const typescriptFolderName = "@mf-typescript";
-    const typesIndexFileName = "__types_index.json";
+    this.distDir = path.join(distPath, this.typescriptFolderName);
+    this.typesIndexJsonFile = path.join(
+      this.distDir,
+      this.typesIndexJsonFileName
+    );
 
-    const distDir = path.join(distPath, typescriptFolderName);
-    const outFile = path.join(distDir, typesIndexFileName);
-
-    const tsCompilerOptions = {
+    this.tsCompilerOptions = {
       declaration: true,
       emitDeclarationOnly: true,
-      outDir: path.join(distDir, "/"),
+      outDir: path.join(this.distDir, "/"),
     };
 
-    const federationOptions = options.plugins.find((plugin) => {
+    const federationOptions = this.compilerOptions.plugins.find((plugin) => {
       return plugin.constructor.name === "ModuleFederationPlugin";
     });
     const inheritedPluginOptions = get(federationOptions, "_options") || null;
 
-    const exposedComponents =
+    this.exposedComponents =
       this.options?.exposes || inheritedPluginOptions.exposes;
-    const remoteComponents =
+    this.remoteComponents =
       this.options?.remotes || inheritedPluginOptions.remotes;
-
-    const run = () => {
-      if (exposedComponents) {
-        const normalizedFileNames = [];
-
-        const fileNames = Object.values(exposedComponents);
-
-        fileNames.forEach((componentFilePath) => {
-          const ext = path.extname(componentFilePath);
-          if (["ts", ".tsx"].includes(ext)) {
-            const normalizedPath = path.resolve(__dirname, componentFilePath);
-
-            normalizedFileNames.push(normalizedPath);
-          } else {
-            throw new Error(
-              `Can not determine file extension, please include file extension for the file ${componentFilePath}`
-            );
-          }
-        });
-
-        const host = ts.createCompilerHost(tsCompilerOptions);
-        const program = ts.createProgram(
-          normalizedFileNames,
-          tsCompilerOptions,
-          host
-        );
-
-        const typeFiles = fileNames.map((f) => {
-          const split = f.split("/");
-          return split[split.length - 1].split(".")[0] + ".d.ts";
-        });
-
-        const emitResult = program.emit();
-
-        if (!emitResult.emitSkipped) {
-          fs.writeFile(outFile, JSON.stringify(typeFiles), (e) => {
-            if (e) {
-              console.log("Error saving the types index", e);
-            }
-          });
-        }
-      }
-
-      // Time to import the remote types
-      if (remoteComponents) {
-        // Get the remote URL origin
-        const remoteUrls = Object.values(remoteComponents).map((r) => {
-          const url = new URL(r.split("@")[1]);
-          return url.origin;
-        });
-
-        remoteUrls.forEach((remote) => {
-          axios
-            .get(`${remote}/@mf-typescript/__types_index.json`)
-            .then((indexFileResp) => {
-              // Download all the d.ts files mentioned in the index file
-              indexFileResp.data?.forEach((file) =>
-                download(`${remote}/@mf-typescript/${file}`, "@mf-typescript")
-              );
-            })
-            .catch((e) => console.log("ERROR fetching/writing types", e));
-        });
-      }
-    };
 
     compiler.hooks.afterCompile.tap("FederatedTypes", (compilation) => {
       // Reset and create an Interval to refetch types every 60 seconds
       clearInterval(recompileInterval);
       if (compiler.options.mode === "development") {
         recompileInterval = setInterval(() => {
-          run(compilation);
+          this.run(compilation);
         }, 1000 * 60);
       }
 
       // Runs a compilation immediately
-      run(compilation);
+      this.run(compilation);
     });
+  }
+
+  run(compilation) {
+    if (this.exposedComponents) {
+      this.extractTypes();
+    }
+
+    // Time to import the remote types
+    if (this.remoteComponents) {
+      // Get the remote URL origin
+      this.importRemoteTypes();
+    }
+  }
+
+  importRemoteTypes() {
+    const remoteUrls = Object.values(this.remoteComponents).map((r) => {
+      let url;
+
+      if (r.includes("@")) {
+        url = r.split("@")[1];
+      }
+
+      const resolvedURL = new URL(url);
+      return resolvedURL.origin;
+    });
+
+    remoteUrls.forEach((remote) => {
+      axios
+        .get(
+          `${remote}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`
+        )
+        .then((indexFileResp) => {
+          // Download all the d.ts files mentioned in the index file
+          indexFileResp.data?.forEach((file) =>
+            download(
+              `${remote}/${this.typescriptFolderName}/${file}`,
+              this.typescriptFolderName
+            )
+          );
+        })
+        .catch((e) => console.log("ERROR fetching/writing types", e));
+    });
+  }
+
+  extractTypes() {
+    const normalizedFileNames = [];
+
+    const fileNames = Object.values(this.exposedComponents);
+
+    fileNames.forEach((componentFilePath) => {
+      const ext = path.extname(componentFilePath);
+
+      // TODO: Resolve the file ext automatically if not provided in the ModuleFederation Config
+      if ([".ts", ".tsx"].includes(ext)) {
+        const normalizedPath = path.resolve(__dirname, componentFilePath);
+
+        normalizedFileNames.push(normalizedPath);
+      } else {
+        throw new Error(
+          `Can not determine file extension, please include file extension for the file ${componentFilePath}`
+        );
+      }
+    });
+
+    const host = ts.createCompilerHost(this.tsCompilerOptions);
+    const originalWriteFileFn = host.writeFile;
+
+    host.writeFile = (...args) => {
+      const [filename, data] = args;
+
+      this.tsDefinitionFilesMap[filename] = data;
+
+      originalWriteFileFn(...args);
+    };
+
+    const program = ts.createProgram(
+      normalizedFileNames,
+      this.tsCompilerOptions,
+      host
+    );
+
+    const emitResult = program.emit();
+
+    if (!emitResult.emitSkipped) {
+      const files = Object.keys(this.tsDefinitionFilesMap).map((file) =>
+        file.slice(`${this.distDir}/`.length)
+      );
+
+      fs.writeFile(this.typesIndexJsonFile, JSON.stringify(files), (e) => {
+        if (e) {
+          console.log("Error saving the types index", e);
+        }
+      });
+    }
   }
 };
