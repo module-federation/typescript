@@ -31,6 +31,10 @@ module.exports = class FederatedTypesPlugin {
           return split[split.length - 1].split('.')[0] + '.d.ts'
         })
 
+        if (!fs.existsSync(path.join(distPath, '/@mf-typescript'))) {
+          fs.mkdirSync(path.join(distPath, '/@mf-typescript'), { recursive: true});
+        }
+
         fs.writeFile(path.join(distPath, '/@mf-typescript/__types_index.json'), JSON.stringify(typeFiles), (e) => {
           if (e) {
             console.log('Error saving the types index', e)
