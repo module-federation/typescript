@@ -19,8 +19,8 @@ module.exports = class FederatedTypesPlugin {
     this.typesIndexJsonFileName = "__types_index.json";
 
     const distPath =
-      get(options, "devServer.static.directory") ||
-      get(options, "output.path") ||
+      get(this.options, "devServer.static.directory") ||
+      get(this.options, "output.path") ||
       "dist";
 
     this.distDir = path.join(distPath, this.typescriptFolderName);
