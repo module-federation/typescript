@@ -1,6 +1,6 @@
 {
   "name": "@module-federation/typescript",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Webpack plugin to stream typescript for module federation apps/components",
   "main": "src/index.js",
   "scripts": {},
