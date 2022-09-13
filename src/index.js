@@ -111,7 +111,7 @@ module.exports = class FederatedTypesPlugin {
 
       // TODO: Resolve the file ext automatically if not provided in the ModuleFederation Config
       if ([".ts", ".tsx"].includes(ext)) {
-        const normalizedPath = path.resolve(__dirname, componentFilePath);
+        const normalizedPath = path.resolve(process.cwd(), componentFilePath);
 
         normalizedFileNames.push(normalizedPath);
       } else {
