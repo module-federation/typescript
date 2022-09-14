@@ -91,15 +91,15 @@ module.exports = class FederatedTypesPlugin {
 
     remoteUrls.forEach(({ origin, remote }) => {
       axios
-        .get(`${remote}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`)
-        .then((indexFileResp) => {
+        .get(`${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`)
+        .then(indexFileResp => {
           // Download all the d.ts files mentioned in the index file
-          indexFileResp.data?.forEach((file) => download(
-            `${remote}/${this.typescriptFolderName}/${file}`,
+          indexFileResp.data?.forEach(file => download(
+            `${origin}/${this.typescriptFolderName}/${file}`,
             `${this.typescriptFolderName}/${remote}`
           ));
         })
-        .catch((e) => console.log("ERROR fetching/writing types", e));
+        .catch(e => console.log("ERROR fetching/writing types", e));
     });
   }
 
