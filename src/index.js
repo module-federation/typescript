@@ -94,7 +94,7 @@ module.exports = class FederatedTypesPlugin {
           // Download all the d.ts files mentioned in the index file
           indexFileResp.data?.forEach(file => download(
             `${origin}/${this.typescriptFolderName}/${file}`,
-            path.join(`${this.typescriptFolderName}/${remote}`.replace(/\/undefined/g, '')
+            path.join(`${this.typescriptFolderName}/${remote}`.replace(/\/undefined/g, ''))
           ));
         })
         .catch(e => console.log("ERROR fetching/writing types", e));
