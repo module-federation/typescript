@@ -73,18 +73,16 @@ module.exports = class FederatedTypesPlugin {
 
   importRemoteTypes() {
     const remoteUrls = Object.values(this.remoteComponents).map(r => {
-      let remote;
-      let url;
-    
-      if (r.includes('@')) {
-        remote = r.split('@')[0];
-        url = r.split('@')[1];
+      const [ remote, url ] = r.split('@');
+
+      if (!url) {
+        return {
+          origin: new URL(remote).origin
+        };
       }
-    
-      const resolvedURL = new URL(url);
-    
-      return { 
-        origin: resolvedURL.origin,
+
+      return {
+        origin: new URL(url).origin,
         remote
       };
     });
@@ -96,7 +94,7 @@ module.exports = class FederatedTypesPlugin {
           // Download all the d.ts files mentioned in the index file
           indexFileResp.data?.forEach(file => download(
             `${origin}/${this.typescriptFolderName}/${file}`,
-            `${this.typescriptFolderName}/${remote}`
+            path.join(`${this.typescriptFolderName}/${remote}`.replace(/\/undefined/g, '')
           ));
         })
         .catch(e => console.log("ERROR fetching/writing types", e));
