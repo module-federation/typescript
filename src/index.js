@@ -72,7 +72,7 @@ module.exports = class FederatedTypesPlugin {
   }
 
   importRemoteTypes() {
-    const remoteUrls = Object.entries(remoteComponents).map(([ remote, entry ]) => {
+    const remoteUrls = Object.entries(this.remoteComponents).map(([ remote, entry ]) => {
     const [, url ] = entry.split('@');
 
     return {
