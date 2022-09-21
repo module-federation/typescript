@@ -106,13 +106,22 @@ module.exports = class FederatedTypesPlugin {
     try {
       // Try to resolve exposed component using index
       const files = fs.readdirSync(path.join(rootDir, entry));
-      filename = files.find(file => file.includes('index'));
+
+      filename = files.find(file => file.split('.')[0] === 'index');
 
       return `${entry}/${filename}`;
     }
     catch (err) {
       const files = fs.readdirSync(rootDir);
-      filename = files.find(file => file.includes(entry));
+
+      // Handle case where directory contains similar filenames
+      // or where a filename like `Component.base.tsx` is used
+      filename = files.find(file => {
+        const baseFile = path.basename(file, path.extname(file));
+        const baseEntry = path.basename(entry, path.extname(entry));
+
+        return baseFile === baseEntry;
+      });
 
       return filename;
     }
