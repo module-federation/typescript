@@ -95,25 +95,47 @@ module.exports = class FederatedTypesPlugin {
     });
   }
 
+  getExtension(rootDir, entry) {
+    // Check path exists and it's a directory
+    if (!fs.existsSync(rootDir) || !fs.lstatSync(rootDir).isDirectory()) {
+      throw new Error('rootDir must be a directory');
+    }
+
+    let filename;
+
+    try {
+      // Try to resolve exposed component using index
+      const files = fs.readdirSync(path.join(rootDir, entry));
+
+      filename = files.find(file => file.split('.')[0] === 'index');
+
+      return `${entry}/${filename}`;
+    }
+    catch (err) {
+      const files = fs.readdirSync(rootDir);
+
+      // Handle case where directory contains similar filenames
+      // or where a filename like `Component.base.tsx` is used
+      filename = files.find(file => {
+        const baseFile = path.basename(file, path.extname(file));
+        const baseEntry = path.basename(entry, path.extname(entry));
+
+        return baseFile === baseEntry;
+      });
+
+      return filename;
+    }
+  }
+
   extractTypes() {
-    const normalizedFileNames = [];
+    const normalizedFileNames = Object.values(this.exposedComponents)
+      .map(exposed => {
+        const [ rootDir, entry ] = exposed.split(/\/(?=[^/]+$)/);
+        const ext = this.getExtension(rootDir, entry);
 
-    const fileNames = Object.values(this.exposedComponents);
-
-    fileNames.forEach((componentFilePath) => {
-      const ext = path.extname(componentFilePath);
-
-      // TODO: Resolve the file ext automatically if not provided in the ModuleFederation Config
-      if ([".ts", ".tsx"].includes(ext)) {
-        const normalizedPath = path.resolve(process.cwd(), componentFilePath);
-
-        normalizedFileNames.push(normalizedPath);
-      } else {
-        throw new Error(
-          `Can not determine file extension, please include file extension for the file ${componentFilePath}`
-        );
-      }
-    });
+        return path.resolve(process.cwd(), rootDir, ext);
+      })
+      .filter(entry => /\.tsx?$/.test(entry));
 
     const host = ts.createCompilerHost(this.tsCompilerOptions);
     const originalWriteFileFn = host.writeFile;
