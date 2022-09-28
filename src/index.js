@@ -100,13 +100,13 @@ module.exports = class FederatedTypesPlugin {
             (file) =>
               !filesToCreate.some((incomingFile) =>
                 incomingFile.includes(file)
-              ) && file !== "index.d.ts"
+              )
           );
 
           filesToDestroy.forEach((file) => {
             fs.unlinkSync(path.join(this.typescriptFolderName, remote, file));
           });
-          
+
           // Download all the d.ts files mentioned in the index file
           indexFileResp.data?.forEach((file) =>
             download(
