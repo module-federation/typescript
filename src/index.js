@@ -72,33 +72,39 @@ module.exports = class FederatedTypesPlugin {
   }
 
   importRemoteTypes() {
-    const remoteUrls = Object.entries(this.remoteComponents).map(([ remote, entry ]) => {
-    const [, url ] = entry.split('@');
+    const remoteUrls = Object.entries(this.remoteComponents).map(
+      ([remote, entry]) => {
+        const [, url] = entry.split("@");
 
-    return {
-      origin: new URL(url ?? entry).origin,
-      remote
-    };
-  })
+        return {
+          origin: new URL(url ?? entry).origin,
+          remote,
+        };
+      }
+    );
 
     remoteUrls.forEach(({ origin, remote }) => {
       axios
-        .get(`${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`)
-        .then(indexFileResp => {
+        .get(
+          `${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`
+        )
+        .then((indexFileResp) => {
           // Download all the d.ts files mentioned in the index file
-          indexFileResp.data?.forEach(file => download(
-            `${origin}/${this.typescriptFolderName}/${file}`,
-            `${this.typescriptFolderName}/${remote}`
-          ));
+          indexFileResp.data?.forEach((file) =>
+            download(
+              `${origin}/${this.typescriptFolderName}/${file}`,
+              `${this.typescriptFolderName}/${remote}`
+            )
+          );
         })
-        .catch(e => console.log("ERROR fetching/writing types", e));
+        .catch((e) => console.log("ERROR fetching/writing types", e));
     });
   }
 
   getExtension(rootDir, entry) {
     // Check path exists and it's a directory
     if (!fs.existsSync(rootDir) || !fs.lstatSync(rootDir).isDirectory()) {
-      throw new Error('rootDir must be a directory');
+      throw new Error("rootDir must be a directory");
     }
 
     let filename;
@@ -107,16 +113,15 @@ module.exports = class FederatedTypesPlugin {
       // Try to resolve exposed component using index
       const files = fs.readdirSync(path.join(rootDir, entry));
 
-      filename = files.find(file => file.split('.')[0] === 'index');
+      filename = files.find((file) => file.split(".")[0] === "index");
 
       return `${entry}/${filename}`;
-    }
-    catch (err) {
+    } catch (err) {
       const files = fs.readdirSync(rootDir);
 
       // Handle case where directory contains similar filenames
       // or where a filename like `Component.base.tsx` is used
-      filename = files.find(file => {
+      filename = files.find((file) => {
         const baseFile = path.basename(file, path.extname(file));
         const baseEntry = path.basename(entry, path.extname(entry));
 
@@ -129,13 +134,13 @@ module.exports = class FederatedTypesPlugin {
 
   extractTypes() {
     const normalizedFileNames = Object.values(this.exposedComponents)
-      .map(exposed => {
-        const [ rootDir, entry ] = exposed.split(/\/(?=[^/]+$)/);
+      .map((exposed) => {
+        const [rootDir, entry] = exposed.split(/\/(?=[^/]+$)/);
         const ext = this.getExtension(rootDir, entry);
 
         return path.resolve(process.cwd(), rootDir, ext);
       })
-      .filter(entry => /\.tsx?$/.test(entry));
+      .filter((entry) => /\.tsx?$/.test(entry));
 
     const host = ts.createCompilerHost(this.tsCompilerOptions);
     const originalWriteFileFn = host.writeFile;
