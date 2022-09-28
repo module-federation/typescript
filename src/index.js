@@ -89,6 +89,24 @@ module.exports = class FederatedTypesPlugin {
           `${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`
         )
         .then((indexFileResp) => {
+          // list files in typescript / remote folder
+          const filesThatExist = fs.readdirSync(
+            path.join(this.typescriptFolderName, remote)
+          );
+
+          const filesToCreate = indexFileResp.data;
+
+          const filesToDestroy = filesThatExist.filter(
+            (file) =>
+              !filesToCreate.some((incomingFile) =>
+                incomingFile.includes(file)
+              ) && file !== "index.d.ts"
+          );
+
+          filesToDestroy.forEach((file) => {
+            fs.unlinkSync(path.join(this.typescriptFolderName, remote, file));
+          });
+          
           // Download all the d.ts files mentioned in the index file
           indexFileResp.data?.forEach((file) =>
             download(
