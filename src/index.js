@@ -86,10 +86,14 @@ module.exports = class FederatedTypesPlugin {
         .get(`${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`)
         .then(indexFileResp => {
           // Download all the d.ts files mentioned in the index file
-          indexFileResp.data?.forEach(file => download(
-            `${origin}/${this.typescriptFolderName}/${file}`,
-            `${this.typescriptFolderName}/${remote}`
-          ));
+          indexFileResp.data?.forEach(filePath => {
+            const fileTree = filePath.split("/")
+            fileTree.pop()
+            const fileDestDir = fileTree.join("/");
+            download(
+            `${origin}/${this.typescriptFolderName}/${filePath}`,
+            `${this.typescriptFolderName}/${remote}/${fileDestDir}`,
+          )});
         })
         .catch(e => console.log("ERROR fetching/writing types", e));
     });
