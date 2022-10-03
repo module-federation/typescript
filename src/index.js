@@ -85,6 +85,11 @@ module.exports = class FederatedTypesPlugin {
       axios
         .get(`${origin}/${this.typescriptFolderName}/${this.typesIndexJsonFileName}`)
         .then(indexFileResp => {
+          // remove old remote types directory
+          const remoteTypesDir = path.join(this.typescriptFolderName, remote);
+          if (fs.existsSync(remoteTypesDir)) {
+            fs.rmdirSync(remoteTypesDir, { recursive: true });
+          }
           // Download all the d.ts files mentioned in the index file
           indexFileResp.data?.forEach(file => download(
             `${origin}/${this.typescriptFolderName}/${file}`,
