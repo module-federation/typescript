@@ -2,8 +2,8 @@
 
 # Project Status
 
-> ## This project is now moved to [module-federation/nextjs-mf](https://github.com/module-federation/nextjs-mf/tree/main/packages/typescript). All the feature development for this package will be made from the new repo.
-> ## Going forward please raise any issues in the `NextJs-mf` repo.
+> ### This project is now moved to [module-federation/nextjs-mf](https://github.com/module-federation/nextjs-mf/tree/main/packages/typescript). All the feature development for this package will be made from the new repo.
+> ### Going forward please raise any issues in the `NextJs-mf` repo.
 
 ### Installation
 ```
